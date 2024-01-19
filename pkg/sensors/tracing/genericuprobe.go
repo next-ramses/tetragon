@@ -47,6 +47,8 @@ type genericUprobe struct {
 	policyName string
 	// message field of the Tracing Policy
 	message string
+	// tags field of the Tracing Policy
+	tags []string
 }
 
 func (g *genericUprobe) SetID(id idtable.EntryID) {
@@ -96,6 +98,7 @@ func handleGenericUprobe(r *bytes.Reader) ([]observer.Event, error) {
 	unix.Symbol = uprobeEntry.symbol
 	unix.PolicyName = uprobeEntry.policyName
 	unix.Message = uprobeEntry.message
+	unix.Tags = uprobeEntry.tags
 
 	return []observer.Event{unix}, err
 }
@@ -196,6 +199,11 @@ func createGenericUprobeSensor(
 			logger.GetLogger().WithField("policy-name", policyName).Warnf("TracingPolicy 'message' field too long, truncated to %d characters", TpMaxMessageLen)
 		}
 
+		tagsField, err := getPolicyTags(spec.Tags)
+		if err != nil {
+			return nil, err
+		}
+
 		for _, sym := range spec.Symbols {
 			config := &api.EventConfig{}
 
@@ -207,6 +215,7 @@ func createGenericUprobeSensor(
 				selectors:  uprobeSelectorState,
 				policyName: policyName,
 				message:    msgField,
+				tags:       tagsField,
 			}
 
 			uprobeTable.AddEntry(uprobeEntry)

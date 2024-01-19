@@ -307,6 +307,7 @@ func GetProcessKprobe(event *MsgGenericKprobeUnix) *tetragon.ProcessKprobe {
 		StackTrace:   stackTrace,
 		PolicyName:   event.PolicyName,
 		Message:      event.Message,
+		Tags:         event.Tags,
 	}
 
 	if tetragonProcess.Pid == nil {
@@ -350,6 +351,7 @@ type MsgGenericTracepointUnix struct {
 	PolicyName string
 	Message    string
 	Action     uint64
+	Tags       []string
 }
 
 func (msg *MsgGenericTracepointUnix) Notify() bool {
@@ -422,6 +424,7 @@ func (msg *MsgGenericTracepointUnix) HandleMessage() *tetragon.GetEventsResponse
 		Args:       tetragonArgs,
 		PolicyName: msg.PolicyName,
 		Message:    msg.Message,
+		Tags:       msg.Tags,
 		Action:     kprobeAction(msg.Action),
 	}
 
@@ -482,6 +485,7 @@ type MsgGenericKprobeUnix struct {
 	PolicyName   string
 	Message      string
 	StackTrace   [unix.PERF_MAX_STACK_DEPTH]uint64
+	Tags         []string
 }
 
 func (msg *MsgGenericKprobeUnix) Notify() bool {
@@ -614,6 +618,7 @@ type MsgGenericUprobeUnix struct {
 	Symbol     string
 	PolicyName string
 	Message    string
+	Tags       []string
 }
 
 func (msg *MsgGenericUprobeUnix) Notify() bool {
@@ -663,6 +668,7 @@ func GetProcessUprobe(event *MsgGenericUprobeUnix) *tetragon.ProcessUprobe {
 		Symbol:     event.Symbol,
 		PolicyName: event.PolicyName,
 		Message:    event.Message,
+		Tags:       event.Tags,
 	}
 
 	if tetragonProcess.Pid == nil {
