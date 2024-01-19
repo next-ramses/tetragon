@@ -671,6 +671,12 @@ spec:
                       default: true
                       description: Indicates whether the traced function is a syscall.
                       type: boolean
+                    tags:
+                      description: Tags to categorize the event, will be include in
+                        the event output. Maximum of 16 Tags are supported.
+                      items:
+                        type: string
+                      type: array
                   required:
                   - call
                   type: object
@@ -1315,6 +1321,12 @@ spec:
                     subsystem:
                       description: Tracepoint subsystem
                       type: string
+                    tags:
+                      description: Tags to categorize the event, will be include in
+                        the event output. Maximum of 16 Tags are supported.
+                      items:
+                        type: string
+                      type: array
                   required:
                   - event
                   - subsystem
@@ -1783,6 +1795,12 @@ spec:
                       type: array
                     symbols:
                       description: List of the traced symbols
+                      items:
+                        type: string
+                      type: array
+                    tags:
+                      description: Tags to categorize the event, will be include in
+                        the event output. Maximum of 16 Tags are supported.
                       items:
                         type: string
                       type: array
