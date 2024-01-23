@@ -57,6 +57,7 @@ metadata:
 spec:
   kprobes:
   - call: "__sys_setuid"
+    message: "Privileged operation setuid to root"
     syscall: false
     return: true
     args:
@@ -74,7 +75,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setgid"
+    message: "Privileged operation setgid to root"
     syscall: false
     return: true
     args:
@@ -92,7 +95,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setreuid"
+    message: "Privileged operation setuid to root"
     syscall: false
     return: true
     args:
@@ -120,7 +125,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setregid"
+    message: "Privileged operation setgid to root"
     syscall: false
     return: true
     args:
@@ -148,7 +155,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setresuid"
+    message: "Privileged operation setuid to root"
     syscall: false
     return: true
     args:
@@ -178,7 +187,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setresgid"
+    message: "Privileged operation setgid to root"
     syscall: false
     return: true
     args:
@@ -208,7 +219,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setfsuid"
+    message: "Privileged operation setuid to root"
     syscall: false
     return: true
     args:
@@ -226,7 +239,9 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
   - call: "__sys_setfsgid"
+    message: "Privileged operation setgid to root"
     syscall: false
     return: true
     args:
@@ -244,3 +259,4 @@ spec:
       matchActions:
       - action: Post
         rateLimit: "1m"  # Rate limit messages to 1min
+    tags: [ "observability.privilege", "observability.process" ]
