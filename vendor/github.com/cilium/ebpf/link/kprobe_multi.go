@@ -1,6 +1,8 @@
 package link
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
@@ -178,3 +180,84 @@ var haveBPFLinkKprobeMulti = internal.NewFeatureTest("bpf_link_kprobe_multi", "5
 
 	return nil
 })
+
+type KprobeMultiInfo struct {
+	Addrs  []uint64
+	Count  uint32
+	Flags  uint32
+	Missed uint64
+}
+
+// KprobeMulti returns kprobe multi type-specific link info.
+//
+// Returns nil if the type-specific link info isn't available.
+func (r Info) KprobeMulti() *KprobeMultiInfo {
+	e, _ := r.extra.(*KprobeMultiInfo)
+	return e
+}
+
+func (l *kprobeMultiLink) Info() (*Info, error) {
+	return l.InfoOpts(&InfoOpts{})
+}
+
+func (l *kprobeMultiLink) InfoOpts(opts *InfoOpts) (*Info, error) {
+	var info sys.LinkInfo
+	var kmulti sys.KprobeMultiLinkInfo
+	var addrs []uint64
+
+	objInfo := func(addrs *[]uint64) error {
+		if addrs != nil {
+			buf := bytes.NewBuffer(nil)
+			err := binary.Write(buf, internal.NativeEndian,
+				sys.KprobeMultiLinkInfo{
+					Addrs: uint64(uintptr(unsafe.Pointer(&(*addrs)[0]))),
+					Count: uint32(len(*addrs)),
+				})
+			if err != nil {
+				return fmt.Errorf("failed to write link info: %w", err)
+			}
+			copy(info.Extra[:], buf.Bytes())
+		}
+
+		if err := sys.ObjInfo(l.fd, &info); err != nil {
+			return fmt.Errorf("failed to call link info: %s", err)
+		}
+
+		buf := bytes.NewReader(info.Extra[:])
+		err := binary.Read(buf, internal.NativeEndian, &kmulti)
+		if err != nil {
+			return fmt.Errorf("failed to read link info: %w", err)
+		}
+		return nil
+	}
+
+	// first read, get count
+	if err := objInfo(nil); err != nil {
+		return nil, err
+	}
+
+	// there's no support for kprobe multi link info in kernel
+	if kmulti.Count == 0 {
+		return nil, fmt.Errorf("failed to get link info: %w", ErrNotSupported)
+	}
+
+	// second read, get addresses if it's enabled (default)
+	if !opts.KprobeMultiNoAddrs {
+		addrs = make([]uint64, kmulti.Count)
+		if err := objInfo(&addrs); err != nil {
+			return nil, err
+		}
+	}
+
+	return &Info{
+		info.Type,
+		info.Id,
+		ebpf.ProgramID(info.ProgId),
+		&KprobeMultiInfo{
+			Addrs:  addrs,
+			Count:  kmulti.Count,
+			Flags:  kmulti.Flags,
+			Missed: kmulti.Missed,
+		},
+	}, nil
+}

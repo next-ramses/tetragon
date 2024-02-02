@@ -73,6 +73,10 @@ func (frt *simpleRawTracepoint) Unpin() error {
 }
 
 func (frt *simpleRawTracepoint) Info() (*Info, error) {
+	return frt.InfoOpts(&InfoOpts{})
+}
+
+func (frt *simpleRawTracepoint) InfoOpts(opts *InfoOpts) (*Info, error) {
 	return nil, fmt.Errorf("can't get raw_tracepoint info: %w", ErrNotSupported)
 }
 

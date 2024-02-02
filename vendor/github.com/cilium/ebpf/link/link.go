@@ -13,6 +13,10 @@ import (
 
 var ErrNotSupported = internal.ErrNotSupported
 
+type InfoOpts struct {
+	KprobeMultiNoAddrs bool
+}
+
 // Link represents a Program attached to a BPF hook.
 type Link interface {
 	// Replace the current program with a new program.
@@ -41,6 +45,11 @@ type Link interface {
 	//
 	// May return an error wrapping ErrNotSupported.
 	Info() (*Info, error)
+
+	// Info returns metadata on a link.
+	//
+	// May return an error wrapping ErrNotSupported.
+	InfoOpts(opts *InfoOpts) (*Info, error)
 
 	// Prevent external users from implementing this interface.
 	isLink()
@@ -96,6 +105,8 @@ func wrapRawLink(raw *RawLink) (_ Link, err error) {
 		return &NetNsLink{*raw}, nil
 	case KprobeMultiType:
 		return &kprobeMultiLink{*raw}, nil
+	case UprobeMultiType:
+		return &uprobeMultiLink{*raw}, nil
 	case PerfEventType:
 		return nil, fmt.Errorf("recovering perf event fd: %w", ErrNotSupported)
 	case TCXType:
@@ -160,11 +171,19 @@ func (r Info) NetNs() *NetNsInfo {
 	return e
 }
 
-// ExtraNetNs returns XDP type-specific link info.
+// XDP returns XDP type-specific link info.
 //
 // Returns nil if the type-specific link info isn't available.
 func (r Info) XDP() *XDPInfo {
 	e, _ := r.extra.(*XDPInfo)
+	return e
+}
+
+// TCX returns TCX type-specific link info.
+//
+// Returns nil if the type-specific link info isn't available.
+func (r Info) TCX() *TCXInfo {
+	e, _ := r.extra.(*TCXInfo)
 	return e
 }
 
@@ -297,8 +316,12 @@ func (l *RawLink) UpdateArgs(opts RawLinkUpdateOptions) error {
 	return sys.LinkUpdate(&attr)
 }
 
-// Info returns metadata about the link.
 func (l *RawLink) Info() (*Info, error) {
+	return l.InfoOpts(&InfoOpts{})
+}
+
+// Info returns metadata about the link.
+func (l *RawLink) InfoOpts(_ *InfoOpts) (*Info, error) {
 	var info sys.LinkInfo
 
 	if err := sys.ObjInfo(l.fd, &info); err != nil {
@@ -316,7 +339,7 @@ func (l *RawLink) Info() (*Info, error) {
 	case XDPType:
 		extra = &XDPInfo{}
 	case RawTracepointType, IterType,
-		PerfEventType, KprobeMultiType:
+		PerfEventType, KprobeMultiType, UprobeMultiType:
 		// Extra metadata not supported.
 	case TCXType:
 		extra = &TCXInfo{}

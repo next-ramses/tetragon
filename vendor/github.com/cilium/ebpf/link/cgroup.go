@@ -165,6 +165,10 @@ func (cg *progAttachCgroup) Unpin() error {
 }
 
 func (cg *progAttachCgroup) Info() (*Info, error) {
+	return cg.InfoOpts(&InfoOpts{})
+}
+
+func (cg *progAttachCgroup) InfoOpts(_ *InfoOpts) (*Info, error) {
 	return nil, fmt.Errorf("can't get cgroup info: %w", ErrNotSupported)
 }
 
